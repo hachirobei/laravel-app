@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+    laravel-app:
+        build:
+            context: ../
+            dockerfile: docker/Laravel.dockerfile
+        image: 'laravel-app'
+        container_name: laravel-app
+        ports:
+            - "${APP_PORT}:${APP_PORT}"
+        volumes:
+            - ./:/var/www/html
+        networks:
+            - app_network_local
+        depends_on:
+            - mysql
+        environment:
+            DB_DATABASE: ${DB_DATABASE}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+
+    mysql:
+        build:
+            context: ..
+            dockerfile: docker/Laravel.dockerfile
+        image: 'mariadb:latest'
+        container_name: laravel-db
+        restart: unless-stopped
+        ports:
+            - "${MYSQL_PORT}:3306"
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        volumes:
+            - ./database/dbdata:/var/lib/mysql
+        networks:
+            - app_network_local
+
+networks:
+  app_network_local:
+    driver: bridge
